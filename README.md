@@ -5,8 +5,6 @@ This repository will contain all the basic graphic projects that will be used to
 Included in this repository is a template folder, this folder can be used to help start a new
 threejs project as it already has the threejs module imported as a script. 
 
-# How to run/test the project
-=======
 # How to run/test the project(cgv_lab9)
 Make sure you are in a specific project directory before running the commands below
 # Step 1
