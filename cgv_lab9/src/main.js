@@ -119,9 +119,11 @@ function setCameraProperties () {
 
 function addingMoreLights () {
     // scene-Global Lighting (Ambient Light that illuminates the scene from above)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
     ambientLight.position.set(0, 33, 0);
     ambientLight.castShadow = true;
+    const globalLight = gui.addFolder('Global-Light');
+    globalLight.add(ambientLight, 'intensity').min(0).max(1).step(0.001);
     scene.add(ambientLight);
 
     // Add a red light
