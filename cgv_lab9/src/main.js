@@ -51,6 +51,10 @@ function createWorld() {
     
     //------------------- Create the scene's visible objects ----------------------
 
+
+    // Add ground
+    createFloor();
+
     // First Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
     // tempObject so that we can create a mesh blueprint
@@ -84,45 +88,113 @@ function createWorld() {
 function setRendererProperties () {
     renderer.setClearColor("black"); // Background color of scene.
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.setSize(canvas.width, canvas.height);
+    document.body.appendChild(renderer.domElement);
     scene = new THREE.Scene();
 }
 
 function setCameraProperties () {
     camera = new THREE.PerspectiveCamera(75, canvas.width/canvas.height, 0.1, 1000);
-    camera.position.z = 20;
+    camera.position.set(0, 0, 20);
+    const cameraPos = gui.addFolder('Camera-Position');
+    cameraPos.add(camera.position, 'x').min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, 'y').min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, 'z').min(-250).max(250).step(0.001);
     light = new THREE.DirectionalLight();
     light.position.set(0,0,1);
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
-    gui.add(camera.position, 'z').min(-70).max(70).step(0.01);
 }
 
 function addingMoreLights () {
+
+    // Add a red light
     const Alight = new THREE.PointLight( 0xff0000, 2.364 );
     Alight.position.set(0.74, -11, -18);
-    gui.add(Alight.position, 'x').min(-50).max(50).step(0.001);
-    gui.add(Alight.position, 'y').min(-50).max(50).step(0.001);
-    gui.add(Alight.position, 'z').min(-50).max(50).step(0.001);
-    gui.add(Alight, 'intensity').min(0).max(10).step(0.001);
+    Alight.castShadow = true;
+    const redLight = gui.addFolder('Red-Light');
+    redLight.add(Alight.position, 'x').min(-50).max(50).step(0.001);
+    redLight.add(Alight.position, 'y').min(-50).max(50).step(0.001);
+    redLight.add(Alight.position, 'z').min(-50).max(50).step(0.001);
+    redLight.add(Alight, 'intensity').min(0).max(10).step(0.001);
+    var pointlightHelperOne = new THREE.PointLightHelper(Alight, 1);
     scene.add(Alight);
+    scene.add(pointlightHelperOne);
 
+
+    // Add a blue light
     const AlightTwo = new THREE.PointLight( 0x0000ff, 1.172 )
     AlightTwo.position.set(0, -7.934, 3.988);
-    gui.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
-    gui.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
-    gui.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
-    gui.add(AlightTwo, 'intensity').min(0).max(10).step(0.001);
+    AlightTwo.castShadow = true;
+    const blueLight = gui.addFolder('Blue-Light');
+    blueLight.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo, 'intensity').min(0).max(10).step(0.001);
+    var pointlightHelperTwo = new THREE.PointLightHelper(AlightTwo, 1);
     scene.add(AlightTwo);
+    scene.add(pointlightHelperTwo);
+
+    // Add a dynamic light
+    const dynamicLight = new THREE.PointLight(0x00ff00, 1.5);
+    dynamicLight.position.set(-30.803, 1, 4.5);
+    dynamicLight.castShadow = true;
+    scene.add(dynamicLight);
+    const dynamicL = gui.addFolder('Dynamic_Light');
+    dynamicL.add(dynamicLight.position, 'x').min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight.position, 'y').min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight.position, 'z').min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight, 'intensity').min(0).max(10).step(0.001);
+
+    let dynamicLightColor = { color: 0x00ff00 }
+    dynamicL.addColor(dynamicLightColor, 'color').onChange(function() {
+        dynamicLight.color.set(dynamicLightColor.color)
+    })
+
+    const pointlightHelperThree = new THREE.PointLightHelper(dynamicLight, 1);
+    scene.add(pointlightHelperThree);
+
 }
 
 function setShadowProperties () {
-    light.shadow.mapSize.width = 212; //default
+    light.shadow.mapSize.width = 512; //default
     light.shadow.mapSize.height = 512 //default
     light.shadow.camera.near = 0.5; //default
     light.shadow.camera.far = 500; //default
+}
+
+function createFloor() {
+    let position = { x: 0, y: -46, z: -69};
+    let scale = { x: 209, y: 2, z: 124 };
+
+    var floorTextureFile = '/textures/ground.jpg';
+    var textureFloor = textureLoader.load(floorTextureFile);
+
+    let Plane = new THREE.Mesh(new THREE.BoxBufferGeometry(),
+        new THREE.MeshPhongMaterial({
+            map: textureLoader.load(floorTextureFile, () => {
+                return textureFloor;
+            }, undefined, (err) => {
+                console.log("An error occured");
+                return null;
+            })
+        }));
+    Plane.position.set(position.x, position.y, position.z);
+    Plane.scale.set(scale.x, scale.y, scale.z);
+    const FloorPosition = gui.addFolder('Floor-Position');
+    FloorPosition.add(Plane.position, 'x').min(-350).max(550).step(0.001);
+    FloorPosition.add(Plane.position, 'y').min(-350).max(550).step(0.001);
+    FloorPosition.add(Plane.position, 'z').min(-350).max(550).step(0.001);
+    const FloorScaling = gui.addFolder('Floor-Scaling');
+    FloorScaling.add(Plane.scale, 'x').min(-350).max(550).step(0.001);
+    FloorScaling.add(Plane.scale, 'y').min(-350).max(550).step(0.001);
+    FloorScaling.add(Plane.scale, 'z').min(-350).max(550).step(0.001);
+    Plane.castShadow = true;
+    Plane.receiveShadow = true;
+    scene.add(Plane);
+
 }
 
 // Blueprint for Cylinder Objects to be placed in the scene
@@ -155,6 +227,8 @@ class Cylinder_Prop {
                     metalness: this.metalness
                 })
             );
+            tempObject.receiveShadow = true;
+            tempObject.castShadow = true;
         }
 
         this.addObjextToScene = (position) => {
@@ -232,15 +306,15 @@ function updateForFrame() {
  *  the rotatio one touch.
  */
 function installOrbitControls() {
-    controls = new OrbitControls(camera,canvas);
+    controls = new OrbitControls(camera, canvas);
     controls.noPan = true; 
     controls.noZoom = true;
-    controls.staticMoving = true;
+    controls.staticMoving = false;
     function move() {
         controls.update();
-        if (! animating) {
+        // if (! animating) {
             render();
-        }
+        // }
     }
     function down() {
         document.addEventListener("mousemove", move, false);
@@ -254,6 +328,7 @@ function installOrbitControls() {
         }
     }
     canvas.addEventListener("mousedown", down, false);
+    canvas.addEventListener("mouseUP", up, false);
     canvas.addEventListener("touchmove", touch, false);
 }
 
