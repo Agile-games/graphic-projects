@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<head>
-<meta charset="UTF-8">
-<title>CS 424 Lab 9</title>
-<!-- <script src="three.js"></script> -->
-<script src="OrbitControls.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/104/three.js"></script>
-<script>
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as dat from 'dat.gui';
 
-"use strict";
+// Debug
+const gui = new dat.GUI();
 
-var canvas, renderer, scene, camera; // Standard three.js requirements.
+var canvas, renderer, scene, camera, textureLoader; // Standard three.js requirements.
+var light;  // A light shining from the direction of the camera; moves with the camera.
 
 var controls;  // An OrbitControls object that is used to implement
                // rotation of the scene using the mouse.  (It actually rotates
@@ -33,82 +30,110 @@ function render() {
  * This function is called by the init() method to create the world. 
  */
 function createWorld() {
-    renderer.setClearColor("black"); // Background color for scene.
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    scene = new THREE.Scene();
+    
+    setRendererProperties(); // set renderer properties and add to scene
     
     // ------------------- Make a camera with viewpoint light ----------------------
-    
-    camera = new THREE.PerspectiveCamera(40, canvas.width/canvas.height, 0.1, 100);
-    camera.position.z = 30;
-    var light;  // A light shining from the direction of the camera; moves with the camera.
-    light = new THREE.DirectionalLight();
-    light.position.set(0,0,1);
-    light.castShadow = true;
-    const Alight = new THREE.AmbientLight( 0xffffff, 0.2 );
-    Alight.position.set(0, 0, -1);
-    camera.add(light);
-    camera.add(Alight);
-    scene.add(camera);
 
-    // Set up shadow properties for the light
-    light.shadow.mapSize.width = 212; //default
-    light.shadow.mapSize.height = 512 //default
-    light.shadow.camera.near = 0.5; //default
-    light.shadow.camera.far = 500; //default
+    setCameraProperties(); // set camera and light properties and add to scene
+
+    // ----------------- Set up shadow properties for the light ---------------------
+    
+    setShadowProperties(); // set shadow properties and add to scene
+
+
+    // ----------------- Initialize Global texture Loader ------------------------
+
+    textureLoader = new THREE.TextureLoader(); // Instantiate a loader
     
     //------------------- Create the scene's visible objects ----------------------
 
     // First Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectOne = new Prop(undefined, 'resources/brownWooden.jpg', 2, -8, 4, 0);
-    objectOne.objectDefinition();
+    objectOne = new Cylinder_Prop(undefined, '/textures/brownWooden.jpg', 2, 30, 0, -8, 4, 0);
+    objectOne.objectDefinition(undefined); // texture is initially undefined
     objectOne.addObjextToScene(12); // pass in the initial rotation value -> Math.PI/{value}
 
     // Second Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectTwo = new Prop(undefined, 'resources/blackLeatherSteel.jpg', 12, 8, 4, 0);
-    objectTwo.objectDefinition();
+    objectTwo = new Cylinder_Prop(undefined, '/textures/blackLeatherSteel.jpg', 12, 10, 5, 8, 4, 0);
+    objectTwo.objectDefinition(undefined); // texture is initially undefined
     objectTwo.addObjextToScene(6); // pass in the initial rotation value -> Math.PI/{value}
 
     // Third Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectThree = new Prop(undefined, 'resources/blackMat.jpg', 36, -8, -4, 0);
-    objectThree.objectDefinition();
+    objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 36, 2, 30, -8, -4, 0);
+    objectThree.objectDefinition(undefined); // texture is initially undefined
     objectThree.addObjextToScene(1); // pass in the initial rotation value -> Math.PI/{value}
 
     // Fourth Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectFour = new Prop(undefined, 'resources/pineWood.jpg', 0, 8, -4, 0);
-    objectFour.objectDefinition();
+    objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 25, 0, 8, -4, 0);
+    objectFour.objectDefinition(undefined); // texture is initially undefined
     objectFour.addObjextToScene(3); // pass in the initial rotation value -> Math.PI/{value}
 } // end function createWorld()
 
-class Prop {
-    constructor(tempObject, textureFile, shininess, x, y, z) {
+function setRendererProperties () {
+    renderer.setClearColor("black"); // Background color of scene.
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    scene = new THREE.Scene();
+}
+
+function setCameraProperties () {
+    camera = new THREE.PerspectiveCamera(40, canvas.width/canvas.height, 0.1, 100);
+    camera.position.z = 30;
+    light = new THREE.DirectionalLight();
+    light.position.set(0,0,1);
+    light.castShadow = true;
+    const Alight = new THREE.AmbientLight( 0xffffff, 0.2 );
+    Alight.position.set(0, 0, 1);
+    camera.add(light);
+    camera.add(Alight);
+    scene.add(camera);
+}
+
+function setShadowProperties () {
+    light.shadow.mapSize.width = 212; //default
+    light.shadow.mapSize.height = 512 //default
+    light.shadow.camera.near = 0.5; //default
+    light.shadow.camera.far = 500; //default
+}
+
+// Blueprint for Cylinder Objects to be placed in the scene
+class Cylinder_Prop {
+    constructor(tempObject, textureFile, shininess, roughness, metalness, x, y, z) {
         this.tempObject = tempObject;
         this.textureFile = textureFile;
         this.shininess = shininess;
+        this.roughness = roughness;
+        this.metalness = metalness;
         this.x = x;
         this.y = y;
         this.z = z;
 
-        this.objectDefinition = () => {
-            const texture = new THREE.TextureLoader().load(this.textureFile);
+        this.objectDefinition = (texture) => {
+            texture = textureLoader.load(this.textureFile);
             tempObject =  new THREE.Mesh(  // DELETE THIS !
                 // new THREE.CylinderGeometry(2,4,8,6,1),
                 new THREE.CylinderGeometry(4,4,6.5,4,8),
                 new THREE.MeshPhongMaterial({
                     // color: 0x66BBFF,
-                    map: texture,
+                    map: textureLoader.load(this.textureFile, () => {
+                        return texture;
+                    }, undefined, (err) => {
+                        console.log("An error occured");
+                        return null;
+                    }),
                     specular: 0x222222,
                     shininess: this.shininess,
                     // shading: THREE.FlatShading
+                    roughness: this.roughness, 
+                    metalness: this.metalness
                 })
             );
         }
@@ -184,7 +209,7 @@ function updateForFrame() {
  *  the rotatio one touch.
  */
 function installOrbitControls() {
-    controls = new THREE.OrbitControls(camera,canvas);
+    controls = new OrbitControls(camera,canvas);
     controls.noPan = true; 
     controls.noZoom = true;
     controls.staticMoving = true;
@@ -243,7 +268,7 @@ function doFrame() {
 function init() {
     try {
         canvas = document.getElementById("glcanvas");
-        renderer = new THREE.WebGLRenderer({
+        renderer = new THREE.WebGLRenderer({ // Initialize renderer
             canvas: canvas,
             antialias: true,
             alpha: false
@@ -260,28 +285,4 @@ function init() {
     installOrbitControls();
     render();
 }
-
-</script>
-</head>
-<body onload="init()">
-
-<h2>Three.js Demo</h2>
-
-<noscript>
-   <p style="color: #AA0000; font-weight: bold">Sorry, but this page requires JavaScript!</p>
-</noscript>
-
-<p style="color:#AA0000; font-weight: bold" id="message">
-</p>
-
-<p>
-   <label><input type="checkbox" id="animateCheckbox"><b>Animate</b></label>
-   <b style="margin-left:50px">Use the mouse to rotate the model.</b>
-</p>
-
-<div id="canvas-holder" style="float:left; border: thin solid black; background-color: white">
-   <canvas width=1500 height=950 id="glcanvas"></canvas>
-</div>
-
-</body>
-</html>
+init();
