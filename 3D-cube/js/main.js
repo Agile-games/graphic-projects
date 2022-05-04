@@ -9,7 +9,13 @@ var WIDTH = window.innerWidth,
 function populateScene() {
   // Every 3D object is a combination of a geometry and a material
   const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  const material = [];
+  const faceColors = ["red", "blue", "green", "white", "orange", "yellow"];
+
+  faceColors.forEach((color) => {
+    let currentMatrial = new THREE.MeshBasicMaterial({ color: color });
+    material.push(currentMatrial);
+  });
 
   // Creating shape by meshing together the geometry and the material
   cube = new THREE.Mesh(geometry, material);
@@ -38,6 +44,7 @@ function animate() {
 
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
+  cube.rotation.z += 0.01;
 
   renderer.render(scene, camera);
 }
