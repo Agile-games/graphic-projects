@@ -9,13 +9,19 @@ Make sure you are in the "cgv_lab9" directory before running the commands below
     Type "npm run dev" and you should see your code editor re-routing you to a website
 
 # What you will see and what the scene does for now
-
-    This is a very basic scene with four geometries each with different textured materials rotating about the y-axis. This program is for testing different lighting on different texture materials. You are also free to move around the camera using the controls shown on the upper right side of the screen or using your mouse. We will extend more around this practice project in order to test stuff out befeore actually implement them in our actual project. We shall play around with this scene, extend on it, add more interesting and complex objects, maps, characters and try out more debugging tools.
+    This is a very basic scene with four geometries each with different textured materials rotating
+    about the y-axis. This program is for testing different lighting on different texture 
+    materials. You are also free to move around the camera using the controls shown on the upper 
+    right side of the screen or using your mouse. We will extend more around this practice project 
+    in order to test stuff out befeore actually implement them in our actual project. We shall play
+    around with this scene, extend on it, add more interesting and complex objects, maps, characters 
+    and try out more debugging tools.
 
 # Collaboration
-
-    You are welcome to play around with the concepts we've learned about in class since this is just a practice projects/repo, if you want to test out something first before 
-    implementing it on our real project you are welcome to test things out in this repository. Lets have some fun and learn alot while at it :)
+    You are welcome to play around with the concepts we've learned about in class since this is just
+    a practice projects/repo, if you want to test out something first before implementing it on our
+    real project you are welcome to test things out in this repository.
+    Lets have some fun and learn alot while at it :)
 
 # Folder structure explanation
     ===================================================================================
