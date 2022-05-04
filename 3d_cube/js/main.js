@@ -2,9 +2,9 @@ var renderer, scene, camera, cube;
 
 var WIDTH = window.innerWidth,
   HEIGHT = window.innerHeight,
-  FOV = 75,
-  NEAR = 1,
-  FAR = 1000;
+  FOV = 75, // field of view
+  NEAR = 1, // near clipping plane
+  FAR = 1000; // far clipping plane
 
 function populateScene() {
   // Every 3D object is a combination of a geometry and a material
@@ -31,7 +31,7 @@ function init() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(FOV, WIDTH / HEIGHT, NEAR, FAR);
 
-  renderer = new THREE.WebGLRenderer();
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   document.body.appendChild(renderer.domElement);
