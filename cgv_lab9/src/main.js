@@ -95,6 +95,10 @@ function setCameraProperties () {
     camera.add(light);
     camera.add(Alight);
     scene.add(camera);
+    // gui.add(camera.position, 'x').min(-10).max(10).step(0.01);
+    // gui.add(camera.position, 'y').min(-10).max(10).step(0.01);
+    gui.add(camera.position, 'z').min(-70).max(70).step(0.01);
+    // gui.add(light, 'intensity').min(0).max(10).step(0.01);
 }
 
 function setShadowProperties () {
