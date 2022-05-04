@@ -12,6 +12,8 @@ var controls;  // An OrbitControls object that is used to implement
                // rotation of the scene using the mouse.  (It actually rotates
                // the camera around the scene.)
 
+var cubeMat, floorMat;
+
 var animating = false;  // Set to true when an animation is in progress.
 var frameNumber = 0;  // Frame number is advanced by 1 for each frame while animating.
 
@@ -55,6 +57,19 @@ function createWorld() {
 
     // Add ground
     createFloor();
+    floorMat = new THREE.MeshStandardMaterial({
+        roughness: 0.8,
+        color: 0xffffff,
+        metalness: 0.2,
+        bumpScale: 0.0005
+    });
+
+    cubeMat = new THREE.MeshStandardMaterial({
+        roughness: 0.7,
+        color: 0xffffff,
+        bumpScale: 0.002,
+        metalness: 0.2
+    });
 
     /*
         Initialize raycaster and every helper variable 
@@ -65,28 +80,28 @@ function createWorld() {
     draggable: THREE.Object3D;
 
     // First Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectOne = new Cylinder_Prop(undefined, '/textures/brownWooden.jpg', 2, 30, 0, -8, 4, 0);
-    objectOne.objectDefinition("brownWoodenObj"); // texture is initially undefined
+    objectOne = new Cylinder_Prop(undefined, '/textures/tarmac2.jpg', 8, 10, 2, -8, 4, 0);
+    objectOne.objectDefinition("tarmacObj"); // texture is initially undefined
     objectOne.addObjextToScene(12); // pass in the initial rotation value -> Math.PI/{value}
 
     // Second Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectTwo = new Cylinder_Prop(undefined, '/textures/blackLeatherSteel.jpg', 12, 10, 5, 8, 4, 0);
+    objectTwo = new Cylinder_Prop(undefined, '/textures/Leather.webp', 5, 20, 2, 8, 4, 0);
     objectTwo.objectDefinition("blackLeatherObj"); // texture is initially undefined
     objectTwo.addObjextToScene(6); // pass in the initial rotation value -> Math.PI/{value}
 
     // Third Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
     objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 36, 2, 30, -8, -4, 0);
     objectThree.objectDefinition("blackMatObj"); // texture is initially undefined
     objectThree.addObjextToScene(1); // pass in the initial rotation value -> Math.PI/{value}
 
     // Fourth Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
     objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 25, 0, 8, -4, 0);
     objectFour.objectDefinition("pineWoodObj"); // texture is initially undefined
@@ -96,25 +111,29 @@ function createWorld() {
 
 function setRendererProperties () {
     renderer.setClearColor("black"); // Background color of scene.
+    renderer.physicallyCorrectLights = true;
+    // renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.shadowMap.enabled = true;
+    // renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.shadowMap.type = THREE.PCFShadowMap;
+    // renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(canvas.width, canvas.height);
     document.body.appendChild(renderer.domElement);
     scene = new THREE.Scene();
 }
 
 function setCameraProperties () {
-    camera = new THREE.PerspectiveCamera(75, canvas.width/canvas.height, 0.1, 1000);
-    camera.position.set(0, 0, 20);
+    camera = new THREE.PerspectiveCamera(65, canvas.width/canvas.height, 0.1, 1000);
+    camera.position.set(0, 0, 22);
     const cameraPos = gui.addFolder('Camera-Position');
     cameraPos.add(camera.position, 'x').min(-250).max(250).step(0.001);
     cameraPos.add(camera.position, 'y').min(-250).max(250).step(0.001);
     cameraPos.add(camera.position, 'z').min(-250).max(250).step(0.001);
     light = new THREE.DirectionalLight();
     light.position.set(0,0,1);
-    light.intensity = 0.5;
+    light.intensity = 1.4;
     const cameraLight = gui.addFolder('Camera-Light');
-    cameraLight.add(light, 'intensity').min(0).max(1).step(0.001);
+    cameraLight.add(light, 'intensity').min(0).max(5).step(0.001);
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
@@ -122,11 +141,11 @@ function setCameraProperties () {
 
 function addingMoreLights () {
     // scene-Global Lighting (Ambient Light that illuminates the scene from above)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 3.5)
     ambientLight.position.set(0, 33, 0);
     ambientLight.castShadow = true;
     const globalLight = gui.addFolder('Global-Light');
-    globalLight.add(ambientLight, 'intensity').min(0).max(1).step(0.001);
+    globalLight.add(ambientLight, 'intensity').min(0).max(5).step(0.001);
     scene.add(ambientLight);
 
     // Add a red light
@@ -137,7 +156,7 @@ function addingMoreLights () {
     redLight.add(Alight.position, 'x').min(-50).max(50).step(0.001);
     redLight.add(Alight.position, 'y').min(-50).max(50).step(0.001);
     redLight.add(Alight.position, 'z').min(-50).max(50).step(0.001);
-    redLight.add(Alight, 'intensity').min(0).max(10).step(0.001);
+    redLight.add(Alight, 'intensity').min(0).max(15).step(0.001);
     var pointlightHelperOne = new THREE.PointLightHelper(Alight, 1);
     scene.add(Alight);
     scene.add(pointlightHelperOne);
@@ -151,7 +170,7 @@ function addingMoreLights () {
     blueLight.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
     blueLight.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
     blueLight.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
-    blueLight.add(AlightTwo, 'intensity').min(0).max(10).step(0.001);
+    blueLight.add(AlightTwo, 'intensity').min(0).max(15).step(0.001);
     var pointlightHelperTwo = new THREE.PointLightHelper(AlightTwo, 1);
     scene.add(AlightTwo);
     scene.add(pointlightHelperTwo);
@@ -165,7 +184,7 @@ function addingMoreLights () {
     dynamicL.add(dynamicLight.position, 'x').min(-50).max(50).step(0.001);
     dynamicL.add(dynamicLight.position, 'y').min(-50).max(50).step(0.001);
     dynamicL.add(dynamicLight.position, 'z').min(-50).max(50).step(0.001);
-    dynamicL.add(dynamicLight, 'intensity').min(0).max(10).step(0.001);
+    dynamicL.add(dynamicLight, 'intensity').min(0).max(15).step(0.001);
 
     let dynamicLightColor = { color: 0x00ff00 }
     dynamicL.addColor(dynamicLightColor, 'color').onChange(function() {
@@ -189,7 +208,15 @@ function createFloor() {
     let scale = { x: 408.40, y: 1.4, z: 160.25 };
 
     var floorTextureFile = '/textures/ground.jpg';
-    var textureFloor = textureLoader.load(floorTextureFile);
+    var textureFloor = textureLoader.load(floorTextureFile, map => {
+        map.wrapS = THREE.RepeatWrapping;
+        map.wrapT = THREE.RepeatWrapping;
+        map.anisotropy = 4;
+        map.repeat.set(100, 24);
+        // map.encoding = THREE.sRGBEncoding;
+        floorMat.roughnessMap = map;
+        floorMat.needsUpdate = true;
+    });
 
     let Plane = new THREE.Mesh(new THREE.BoxBufferGeometry(),
         new THREE.MeshPhongMaterial({
@@ -198,7 +225,11 @@ function createFloor() {
             }, undefined, (err) => {
                 console.log("An error occured");
                 return null;
-            })
+            }),
+            roughness: 1,
+            metalness: 0.2,
+            shininess: 0.3,
+            bumpScale: 0.0005
         }));
     Plane.position.set(position.x, position.y, position.z);
     Plane.scale.set(scale.x, scale.y, scale.z);
@@ -231,7 +262,15 @@ class Cylinder_Prop {
         this.z = z;
 
         this.objectDefinition = (name) => {
-            const texture = textureLoader.load(this.textureFile);
+            const texture = textureLoader.load(this.textureFile, map => {
+                map.wrapS = THREE.RepeatWrapping;
+                map.wrapT = THREE.RepeatWrapping;
+                map.anisotropy = 4;
+                map.repeat.set(1, 1);
+                map.encoding = THREE.sRGBEncoding;
+                cubeMat.map = map;
+                cubeMat.needsUpdate = true;
+            });
             tempObject =  new THREE.Mesh( 
                 new THREE.CylinderGeometry(4,4,6.5,4,8),
                 new THREE.MeshPhongMaterial({
