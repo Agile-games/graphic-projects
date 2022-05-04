@@ -41,6 +41,9 @@ function createWorld() {
     
     setShadowProperties(); // set shadow properties and add to scene
 
+    // ------------------ Adding More lights -------------------------------------
+
+    addingMoreLights();
 
     // ----------------- Initialize Global texture Loader ------------------------
 
@@ -75,30 +78,47 @@ function createWorld() {
     objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 25, 0, 8, -4, 0);
     objectFour.objectDefinition(undefined); // texture is initially undefined
     objectFour.addObjextToScene(3); // pass in the initial rotation value -> Math.PI/{value}
+    doFrame();
 } // end function createWorld()
 
 function setRendererProperties () {
     renderer.setClearColor("black"); // Background color of scene.
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setSize(canvas.width, canvas.height);
     scene = new THREE.Scene();
 }
 
 function setCameraProperties () {
-    camera = new THREE.PerspectiveCamera(40, canvas.width/canvas.height, 0.1, 100);
-    camera.position.z = 30;
+    camera = new THREE.PerspectiveCamera(75, canvas.width/canvas.height, 0.1, 1000);
+    camera.position.z = 20;
     light = new THREE.DirectionalLight();
     light.position.set(0,0,1);
     light.castShadow = true;
-    const Alight = new THREE.AmbientLight( 0xffffff, 0.2 );
-    Alight.position.set(0, 0, 1);
     camera.add(light);
-    camera.add(Alight);
     scene.add(camera);
     // gui.add(camera.position, 'x').min(-10).max(10).step(0.01);
     // gui.add(camera.position, 'y').min(-10).max(10).step(0.01);
     gui.add(camera.position, 'z').min(-70).max(70).step(0.01);
     // gui.add(light, 'intensity').min(0).max(10).step(0.01);
+}
+
+function addingMoreLights () {
+    const Alight = new THREE.PointLight( 0xff0000, 2.364 );
+    Alight.position.set(0.74, -11, -18);
+    gui.add(Alight.position, 'x').min(-50).max(50).step(0.001);
+    gui.add(Alight.position, 'y').min(-50).max(50).step(0.001);
+    gui.add(Alight.position, 'z').min(-50).max(50).step(0.001);
+    gui.add(Alight, 'intensity').min(0).max(10).step(0.001);
+    scene.add(Alight);
+
+    const AlightTwo = new THREE.PointLight( 0x0000ff, 1.172 )
+    AlightTwo.position.set(0, -7.934, 3.988);
+    gui.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
+    gui.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
+    gui.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
+    gui.add(AlightTwo, 'intensity').min(0).max(10).step(0.001);
+    scene.add(AlightTwo);
 }
 
 function setShadowProperties () {
@@ -178,6 +198,12 @@ function onDocumentMouseMove (event) {
     mouseY = ((event.clientY - (canvas.height / 2)) / 20);
 }
 
+function onWindowResize() {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 /**
  *  This function is called once for each frame of the animation, before
  *  the render() function is called for that frame.  It updates any
@@ -238,27 +264,28 @@ function installOrbitControls() {
     canvas.addEventListener("touchmove", touch, false);
 }
 
-/*  Called when user changes setting of the Animate checkbox. */
-function doAnimateCheckbox() {
-   var run = document.getElementById("animateCheckbox").checked;
-   if (run != animating) {
-       animating = run;
-       if (animating) {
-           requestAnimationFrame(doFrame);
-           window.addEventListener('mousemove', onDocumentMouseMove, false);
-           keyCameraTranslate();
-       }
-   }
-}
+// /*  Called when user changes setting of the Animate checkbox. */
+// function doAnimateCheckbox() {
+//    var run = document.getElementById("animateCheckbox").checked;
+//    if (run != animating) {
+//        animating = run;
+//        if (animating) {
+//            requestAnimationFrame(doFrame);
+//         //    window.addEventListener('mousemove', onDocumentMouseMove, false);
+//         //    keyCameraTranslate();
+//        }
+//    }
+// }
 
 /*  Drives the animation, called by system through requestAnimationFrame() */
 function doFrame() {
-    if (animating) {
+    // if (animating) {
+        window.addEventListener('resize', onWindowResize, false);
         frameNumber++;
         updateForFrame();
         render();
         requestAnimationFrame(doFrame);
-    }
+    // }
 }
 
 /*----------------------------- INITIALIZATION ----------------------------------------
@@ -283,8 +310,10 @@ function init() {
                 e + "</b>";
         return;
     }
-    document.getElementById("animateCheckbox").checked = false;
-    document.getElementById("animateCheckbox").onchange = doAnimateCheckbox;
+    // document.getElementById("animateCheckbox").checked = false;
+    // document.getElementById("animateCheckbox").onchange = doAnimateCheckbox;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     createWorld();
     installOrbitControls();
     render();
