@@ -112,6 +112,9 @@ function setCameraProperties () {
     cameraPos.add(camera.position, 'z').min(-250).max(250).step(0.001);
     light = new THREE.DirectionalLight();
     light.position.set(0,0,1);
+    light.intensity = 0.5;
+    const cameraLight = gui.addFolder('Camera-Light');
+    cameraLight.add(light, 'intensity').min(0).max(1).step(0.001);
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
