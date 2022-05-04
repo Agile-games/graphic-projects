@@ -10,8 +10,7 @@ Make sure you are in the "cgv_lab9" directory before running the commands below
 
 # What you will see and what the scene does for now
 
-    At first glance the scene is underwhelming, A black canvas and four black geometries.
-    This is a bug I'm still working on fixing, hopefully it'll all be sorted sometime today. When you click on Animate you'll see textures loaded in and you can move around the camera by hovering your mouse over the canvas and using the Keys W and S to move forward and back respectively with respect to the z-axis to see the effect of the lighting used on these different textures(And this is the intended behaviour as opposed to what you had witnessed at first). 
+    This is a very basic scene with four geometries each with different textured materials rotating about the y-axis. This program is for testing different lighting on different texture materials. You are also free to move around the camera using the controls shown on the upper right side of the screen or using your mouse. We will extend more around this practice project in order to test stuff out befeore actually implement them in our actual project. We shall play around with this scene, extend on it, add more interesting and complex objects, maps, characters and try out more debugging tools.
 
 # Collaboration
 
