@@ -96,14 +96,16 @@ function setRendererProperties () {
 
 function setCameraProperties () {
     camera = new THREE.PerspectiveCamera(75, canvas.width/canvas.height, 0.1, 1000);
-    camera.position.z = 20;
+    camera.position.set(0, 0, 20);
+    const cameraPos = gui.addFolder('Camera-Position');
+    cameraPos.add(camera.position, 'x').min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, 'y').min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, 'z').min(-250).max(250).step(0.001);
     light = new THREE.DirectionalLight();
     light.position.set(0,0,1);
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
-    const cameraPosition = gui.addFolder('Camera-controls');
-    cameraPosition.add(camera.position, 'z').min(-70).max(70).step(0.01);
 }
 
 function addingMoreLights () {
