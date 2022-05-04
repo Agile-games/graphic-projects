@@ -97,10 +97,7 @@ function setCameraProperties () {
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
-    // gui.add(camera.position, 'x').min(-10).max(10).step(0.01);
-    // gui.add(camera.position, 'y').min(-10).max(10).step(0.01);
     gui.add(camera.position, 'z').min(-70).max(70).step(0.01);
-    // gui.add(light, 'intensity').min(0).max(10).step(0.01);
 }
 
 function addingMoreLights () {
@@ -142,11 +139,9 @@ class Cylinder_Prop {
 
         this.objectDefinition = (texture) => {
             texture = textureLoader.load(this.textureFile);
-            tempObject =  new THREE.Mesh(  // DELETE THIS !
-                // new THREE.CylinderGeometry(2,4,8,6,1),
+            tempObject =  new THREE.Mesh( 
                 new THREE.CylinderGeometry(4,4,6.5,4,8),
                 new THREE.MeshPhongMaterial({
-                    // color: 0x66BBFF,
                     map: textureLoader.load(this.textureFile, () => {
                         return texture;
                     }, undefined, (err) => {
@@ -155,7 +150,7 @@ class Cylinder_Prop {
                     }),
                     specular: 0x222222,
                     shininess: this.shininess,
-                    // shading: THREE.FlatShading
+                    // shading: THREE.FlatShading,
                     roughness: this.roughness, 
                     metalness: this.metalness
                 })
@@ -167,8 +162,6 @@ class Cylinder_Prop {
             tempObject.castShadow = true;
             tempObject.receiveShadow = false;
             tempObject.position.set(this.x, this.y, this.z);
-            // tempObject.updateMatrix();
-            // tempObject.matrix.setPosition(0);
             scene.add(tempObject);
         }
 
@@ -264,28 +257,13 @@ function installOrbitControls() {
     canvas.addEventListener("touchmove", touch, false);
 }
 
-// /*  Called when user changes setting of the Animate checkbox. */
-// function doAnimateCheckbox() {
-//    var run = document.getElementById("animateCheckbox").checked;
-//    if (run != animating) {
-//        animating = run;
-//        if (animating) {
-//            requestAnimationFrame(doFrame);
-//         //    window.addEventListener('mousemove', onDocumentMouseMove, false);
-//         //    keyCameraTranslate();
-//        }
-//    }
-// }
-
 /*  Drives the animation, called by system through requestAnimationFrame() */
 function doFrame() {
-    // if (animating) {
         window.addEventListener('resize', onWindowResize, false);
         frameNumber++;
         updateForFrame();
         render();
         requestAnimationFrame(doFrame);
-    // }
 }
 
 /*----------------------------- INITIALIZATION ----------------------------------------
@@ -310,8 +288,6 @@ function init() {
                 e + "</b>";
         return;
     }
-    // document.getElementById("animateCheckbox").checked = false;
-    // document.getElementById("animateCheckbox").onchange = doAnimateCheckbox;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     createWorld();
