@@ -2,7 +2,7 @@
 This repository will contain all the basic graphic projects that will be used to learn the threejs module in Javascript
 
 # How to run/test the project
-Make sure you are in the "cgv_lab9" directory before running the commands below
+Make sure you are in a specific project directory before running the commands below
 # Step 1
     Type "npm -i" on your terminal to install the required modules
 # Step 2
