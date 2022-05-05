@@ -39,7 +39,7 @@ threejs project as it already has the threejs module imported as a script.
 # Folder structure explanation
 
     ===================================================================================
-    1. Bundler: Ingnore
+    1. Bundler: Ignore
     ===================================================================================
     2. src: Here is where all you code files are kept. CSS, Javascript and HTML
     ===================================================================================
