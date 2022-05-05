@@ -23,7 +23,6 @@ var frameNumber = 0;  // Frame number is advanced by 1 for each frame while anim
 
 var tempObject;  // A temporary animated object.  DELETE IT.
 
-var mouseX = 0, mouseY = 0;
 var objectOne, objectTwo, objectThree, objectFour; // Objects in scene
 let rayCaster, clickMouse, moveMouse, draggable; // Requirements for dragging around objects
 
@@ -371,11 +370,6 @@ function dragObject() {
     }
 }
 
-function onDocumentMouseMove (event) {
-    mouseX = ((event.clientX - (canvas.width / 2)) / 20);
-    mouseY = ((event.clientY - (canvas.height / 2)) / 20);
-}
-
 function onWindowResize() {
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
@@ -397,8 +391,6 @@ function updateForFrame() {
     // var scaleFactor = 0.9 + loopFrame/1220;
     // dragObject();
     var scaleFactor = 1;
-    camera.position.x += (mouseX - camera.position.x) * .5;
-    camera.position.y += (-mouseY - camera.position.y) * .5;
     camera.lookAt(scene.position);
     objectOne.update(scaleFactor);
     objectTwo.update(scaleFactor);
@@ -418,7 +410,7 @@ function updateForFrame() {
  *  the rotatio one touch.
  */
 function installOrbitControls() {
-    controls = new OrbitControls(camera, canvas);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.noPan = true; 
     controls.noZoom = true;
     controls.staticMoving = false;
@@ -442,6 +434,24 @@ function installOrbitControls() {
     canvas.addEventListener("mousedown", down, false);
     canvas.addEventListener("mouseUP", up, false);
     canvas.addEventListener("touchmove", touch, false);
+}
+
+function installPointerLockControls () {
+    const controls = new PointerLockControls( camera, document.body );
+
+    // add event listener to show/hide a UI (e.g. the game's menu)
+
+    controls.addEventListener( 'lock', function () {
+
+        menu.style.display = 'none';
+
+    } );
+
+    controls.addEventListener( 'unlock', function () {
+
+        menu.style.display = 'block';
+
+    } );
 }
 
 /*  Drives the animation, called by system through requestAnimationFrame() */
@@ -485,6 +495,7 @@ function init() {
     canvas.height = window.innerHeight;
     createWorld();
     // installOrbitControls();
+    installPointerLockControls();
     render();
 }
 init();
