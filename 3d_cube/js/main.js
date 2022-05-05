@@ -32,7 +32,15 @@ function init() {
   camera = new THREE.PerspectiveCamera(FOV, WIDTH / HEIGHT, NEAR, FAR);
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(WIDTH, HEIGHT);
+
+  window.addEventListener("resize", () => {
+    WIDTH = window.innerWidth;
+    HEIGHT = window.innerHeight;
+    renderer.setSize(WIDTH, HEIGHT);
+    camera.aspect = WIDTH / HEIGHT;
+    camera.updateProjectMatrix();
+  });
 
   document.body.appendChild(renderer.domElement);
   populateScene();
@@ -44,7 +52,6 @@ function animate() {
 
   cube.rotation.x += 0.01;
   cube.rotation.y += 0.01;
-  cube.rotation.z += 0.01;
 
   renderer.render(scene, camera);
 }
