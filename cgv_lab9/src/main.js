@@ -207,8 +207,8 @@ function setShadowProperties () {
 }
 
 function createFloor() {
-    let position = { x: 0, y: -46, z: -97.82};
-    let scale = { x: 408.40, y: 1.4, z: 160.25 };
+    let position = { x: 0, y: -46, z: -18.413};
+    let scale = { x: 458.03, y: 1.4, z: 338.92 };
 
     var floorTextureFile = '/textures/ground.jpg';
     var textureFloor = textureLoader.load(floorTextureFile, map => {
@@ -440,6 +440,10 @@ function installPointerLockControls () {
     const controls = new PointerLockControls( camera, document.body );
 
     // add event listener to show/hide a UI (e.g. the game's menu)
+
+    controls.addEventListener('change', function() {
+
+    }, false);
 
     controls.addEventListener( 'lock', function () {
 
