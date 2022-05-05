@@ -1,9 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
+import Stats from 'stats.js';
 
 // Debug
 const gui = new dat.GUI();
+
+// For Monitoring Perfomance
+const stats = new Stats();
 
 var canvas, renderer, scene, camera, textureLoader; // Standard three.js requirements.
 var light;  // A light shining from the direction of the camera; moves with the camera.
@@ -442,10 +446,17 @@ function installOrbitControls() {
 
 /*  Drives the animation, called by system through requestAnimationFrame() */
 function doFrame() {
+    // Initialize FPS counter
+    stats.begin();
+
     frameNumber++;
     updateForFrame();
     render();
     requestAnimationFrame(doFrame);
+    
+    stats.end();
+    stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+    document.body.appendChild(stats.dom) // Show FPS counter on canvas
 }
 
 /*----------------------------- INITIALIZATION ----------------------------------------
