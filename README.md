@@ -13,7 +13,7 @@ threejs project as it already has the threejs module imported as a script.
 
 # Step 1
 
-    Type "npm -i" on your terminal to install the required modules
+    Type "npm install" on your terminal to install the required modules
 
 # Step 2
 
