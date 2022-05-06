@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import * as dat from 'dat.gui';
 import Stats from 'stats.js';
-import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass';
@@ -23,10 +22,6 @@ var clock = new THREE.Clock();
 
 // Initialize Keyboard state
 // var keyboard = new THREEx.keyboardState();
-
-// first person viewing
-var firstpersonCameraControl;
-var altFirstPersonCameraControl;
 
 // Initialize Postprocessing variables
 var bokehPass, renderPass, composer;
@@ -66,8 +61,6 @@ function createWorld() {
     // ------------------- Make a camera with viewpoint light ----------------------
 
     setCameraProperties(); // set camera and light properties and add to scene
-    firstpersonCameraControl = new FirstPersonControls(camera, canvas);
-    altFirstPersonCameraControl = new PointerLockControls(camera, canvas);
 
     // ----------------- Set up shadow properties for the light ---------------------
     
@@ -264,7 +257,6 @@ function createFloor() {
         map.wrapT = THREE.RepeatWrapping;
         map.anisotropy = 4;
         map.repeat.set(100, 24);
-        // map.encoding = THREE.sRGBEncoding;
         floorMat.roughnessMap = map;
         floorMat.needsUpdate = true;
     });
@@ -413,31 +405,23 @@ function updateForFrame() {
     // let moveDistance = clock.getDelta();
 
     // var scaleFactor = 1 + loopFrame/120;
-    // dragObject();
     var scaleFactor = 1;
     // camera.lookAt(scene.position);
     objectOne.update(scaleFactor);
     objectTwo.update(scaleFactor);
     objectThree.update(scaleFactor);
     objectFour.update(scaleFactor);
-    // firstpersonCameraControl.update(moveDistance);
-    // altFirstPersonCameraControl.update(moveDistance);
 }
 
 /* ---------------------------- MOUSE AND ANIMATION SUPPORT ------------------
 
 /**
- *  This page uses THREE.FirstPersonControls or THREE.PointerLockControls to let the user use the mouse to rotate
- *  the view.  FirstPersonControls and PointerLockControls are designed to be used during an animation, where
+ *  This page uses THREE.PointerLockControls to let the user use the mouse to rotate
+ *  the view. PointerLockControls are designed to be used during an animation, where
  *  the rotation is updated as part of preparing for the next frame.  The scene
  *  is not automatically updated just because the user drags the mouse.  To get
  *  the rotatio one touch.
  */
-function installFirstPersonControls () {
-    firstpersonCameraControl.lookSpeed = 0.09;
-    firstpersonCameraControl.movementSpeed = 75;
-}
-
 function installPointerLockControls () {
     controls = new PointerLockControls(camera, canvas);
     controls.addEventListener('lock', () => {
@@ -488,9 +472,7 @@ function init() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     createWorld();
-    // installOrbitControls();
     installPointerLockControls();
-    installFirstPersonControls();
     render();
 }
 init();
