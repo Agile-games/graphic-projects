@@ -8,9 +8,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 // import * as THREEx from 'threex';
 
-const menuPanel = document.getElementById('menuPanel');
-const startButton = document.getElementById('startButton');
- 
+const menuPanel = document.getElementById("menuPanel");
+const startButton = document.getElementById("startButton");
+
 // Debug
 const gui = new dat.GUI();
 
@@ -27,17 +27,17 @@ var clock = new THREE.Clock();
 var bokehPass, renderPass, composer;
 
 var canvas, renderer, scene, camera, textureLoader; // Standard three.js requirements.
-var light;  // A light shining from the direction of the camera; moves with the camera.
+var light; // A light shining from the direction of the camera; moves with the camera.
 
-var controls;  // An OrbitControls object that is used to implement
-               // rotation of the scene using the mouse.  (It actually rotates
-               // the camera around the scene.)
+var controls; // An OrbitControls object that is used to implement
+// rotation of the scene using the mouse.  (It actually rotates
+// the camera around the scene.)
 
 var cubeMat, floorMat;
 
-var frameNumber = 0;  // Frame number is advanced by 1 for each frame while animating.
+var frameNumber = 0; // Frame number is advanced by 1 for each frame while animating.
 
-var tempObject;  // A temporary animated object.  DELETE IT.
+var tempObject; // A temporary animated object.  DELETE IT.
 
 const objects = []; // Keep track of objects in scene
 var dragObjects;
@@ -52,18 +52,17 @@ function render() {
 }
 
 /**
- * This function is called by the init() method to create the world. 
+ * This function is called by the init() method to create the world.
  */
 function createWorld() {
-    
     setRendererProperties(); // set renderer properties and add to scene
-    
+
     // ------------------- Make a camera with viewpoint light ----------------------
 
     setCameraProperties(); // set camera and light properties and add to scene
 
     // ----------------- Set up shadow properties for the light ---------------------
-    
+
     setShadowProperties(); // set shadow properties and add to scene
 
     // ------------------ Adding More lights -------------------------------------
@@ -73,7 +72,7 @@ function createWorld() {
     // ----------------- Initialize Global texture Loader ------------------------
 
     textureLoader = new THREE.TextureLoader(); // Instantiate a loader
-    
+
     //------------------- Create the scene's visible objects ----------------------
 
     // Add ground
@@ -95,7 +94,18 @@ function createWorld() {
     // First Object
     // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectOne = new Cylinder_Prop(undefined, '/textures/tarmac2.jpg', 0, 0, 8, 10, 2, -8, 4, 0);
+    objectOne = new Cylinder_Prop(
+        undefined,
+        "/textures/tarmac2.jpg",
+        0,
+        0,
+        8,
+        10,
+        2,
+        -8,
+        4,
+        0
+    );
     objectOne.objectDefinition("tarmacObj"); // texture is initially undefined
     objectOne.addObjextToScene(12); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectOne.getMesh());
@@ -103,7 +113,18 @@ function createWorld() {
     // Second Object
     // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectTwo = new Cylinder_Prop(undefined, '/textures/Leather.webp', 0, 0, 5, 20, 2, 8, 4, 0);
+    objectTwo = new Cylinder_Prop(
+        undefined,
+        "/textures/Leather.webp",
+        0,
+        0,
+        5,
+        20,
+        2,
+        8,
+        4,
+        0
+    );
     objectTwo.objectDefinition("blackLeatherObj"); // texture is initially undefined
     objectTwo.addObjextToScene(6); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectTwo.getMesh());
@@ -111,7 +132,18 @@ function createWorld() {
     // Third Object
     // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 1, 1, 36, 2, 30, -8, -4, 0);
+    objectThree = new Cylinder_Prop(
+        undefined,
+        "/textures/blackMat.jpg",
+        1,
+        1,
+        36,
+        2,
+        30,
+        -8,
+        -4,
+        0
+    );
     objectThree.objectDefinition("blackMatObj"); // texture is initially undefined
     objectThree.addObjextToScene(1); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectThree.getMesh());
@@ -119,26 +151,42 @@ function createWorld() {
     // Fourth Object
     // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 0, 0, 25, 0, 8, -4, 0);
+    objectFour = new Cylinder_Prop(
+        undefined,
+        "/textures/pineWood.jpg",
+        0,
+        0,
+        0,
+        25,
+        0,
+        8,
+        -4,
+        0
+    );
     objectFour.objectDefinition("pineWoodObj"); // texture is initially undefined
     objectFour.addObjextToScene(3); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectFour.getMesh());
 
     dragObjects = new DragControls(objects, camera, canvas);
 
-    dragObjects.addEventListener('dragstart', event => {
+    dragObjects.addEventListener("dragstart", (event) => {
         event.object.material.opacity = 0.5;
     });
-    
-    dragObjects.addEventListener('dragend', event => {
+
+    dragObjects.addEventListener("dragend", (event) => {
         event.object.material.opacity = 1;
     });
 
     doFrame();
 } // end function createWorld()
 
-function setRendererProperties () {
-    camera = new THREE.PerspectiveCamera(65, canvas.width/canvas.height, 0.1, 1000);
+function setRendererProperties() {
+    camera = new THREE.PerspectiveCamera(
+        65,
+        canvas.width / canvas.height,
+        0.1,
+        1000
+    );
     camera.position.set(0, 0, 22);
     // renderer.setClearColor("black"); // Background color of scene.
     renderer.physicallyCorrectLights = true;
@@ -147,7 +195,7 @@ function setRendererProperties () {
     renderer.setSize(canvas.width, canvas.height);
     document.body.appendChild(renderer.domElement);
     scene = new THREE.Scene();
-    const imgFile = '/textures/Planet.jpg';
+    const imgFile = "/textures/Planet.jpg";
     var imgfiles = [];
     for (let i = 0; i < 6; i++) {
         imgfiles.push(imgFile);
@@ -169,52 +217,51 @@ function setRendererProperties () {
     composer.addPass(bokehPass);
 }
 
-function setCameraProperties () {
-    const cameraPos = gui.addFolder('Camera-Position');
-    cameraPos.add(camera.position, 'x').min(-250).max(250).step(0.001);
-    cameraPos.add(camera.position, 'y').min(-250).max(250).step(0.001);
-    cameraPos.add(camera.position, 'z').min(-250).max(250).step(0.001);
+function setCameraProperties() {
+    const cameraPos = gui.addFolder("Camera-Position");
+    cameraPos.add(camera.position, "x").min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, "y").min(-250).max(250).step(0.001);
+    cameraPos.add(camera.position, "z").min(-250).max(250).step(0.001);
     light = new THREE.DirectionalLight();
-    light.position.set(0,0,1);
+    light.position.set(0, 0, 1);
     light.intensity = 1.4;
-    const cameraLight = gui.addFolder('Camera-Light');
-    cameraLight.add(light, 'intensity').min(0).max(5).step(0.001);
+    const cameraLight = gui.addFolder("Camera-Light");
+    cameraLight.add(light, "intensity").min(0).max(5).step(0.001);
     light.castShadow = true;
     camera.add(light);
     scene.add(camera);
 }
 
-function addingMoreLights () {
+function addingMoreLights() {
     // scene-Global Lighting (Ambient Light that illuminates the scene from the bird's eye view)
-    const ambientLight = new THREE.AmbientLight(0x444444, 12.5)
+    const ambientLight = new THREE.AmbientLight(0x444444, 12.5);
     ambientLight.position.set(0, 33, 0);
-    const globalLight = gui.addFolder('Global-Light');
-    globalLight.add(ambientLight, 'intensity').min(0).max(20).step(0.001);
+    const globalLight = gui.addFolder("Global-Light");
+    globalLight.add(ambientLight, "intensity").min(0).max(20).step(0.001);
     scene.add(ambientLight);
 
     // Add a red light
-    const Alight = new THREE.PointLight( 0xff0000, 0.2 );
+    const Alight = new THREE.PointLight(0xff0000, 0.2);
     Alight.position.set(0.74, -11, -18);
     Alight.castShadow = false;
-    const redLight = gui.addFolder('Red-Light');
-    redLight.add(Alight.position, 'x').min(-50).max(50).step(0.001);
-    redLight.add(Alight.position, 'y').min(-50).max(50).step(0.001);
-    redLight.add(Alight.position, 'z').min(-50).max(50).step(0.001);
-    redLight.add(Alight, 'intensity').min(0).max(60).step(0.001);
+    const redLight = gui.addFolder("Red-Light");
+    redLight.add(Alight.position, "x").min(-50).max(50).step(0.001);
+    redLight.add(Alight.position, "y").min(-50).max(50).step(0.001);
+    redLight.add(Alight.position, "z").min(-50).max(50).step(0.001);
+    redLight.add(Alight, "intensity").min(0).max(60).step(0.001);
     var pointlightHelperOne = new THREE.PointLightHelper(Alight, 1);
     scene.add(Alight);
     scene.add(pointlightHelperOne);
 
-
     // Add a blue light
-    const AlightTwo = new THREE.PointLight( 0x0000ff, 0.2 )
+    const AlightTwo = new THREE.PointLight(0x0000ff, 0.2);
     AlightTwo.position.set(0, -7.934, 3.988);
     AlightTwo.castShadow = false;
-    const blueLight = gui.addFolder('Blue-Light');
-    blueLight.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
-    blueLight.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
-    blueLight.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
-    blueLight.add(AlightTwo, 'intensity').min(0).max(60).step(0.001);
+    const blueLight = gui.addFolder("Blue-Light");
+    blueLight.add(AlightTwo.position, "x").min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo.position, "y").min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo.position, "z").min(-50).max(50).step(0.001);
+    blueLight.add(AlightTwo, "intensity").min(0).max(60).step(0.001);
     var pointlightHelperTwo = new THREE.PointLightHelper(AlightTwo, 1);
     scene.add(AlightTwo);
     scene.add(pointlightHelperTwo);
@@ -224,35 +271,34 @@ function addingMoreLights () {
     dynamicLight.position.set(-9.848, -2.128, 12.209);
     dynamicLight.castShadow = false;
     scene.add(dynamicLight);
-    const dynamicL = gui.addFolder('Dynamic_Light');
-    dynamicL.add(dynamicLight.position, 'x').min(-50).max(50).step(0.001);
-    dynamicL.add(dynamicLight.position, 'y').min(-50).max(50).step(0.001);
-    dynamicL.add(dynamicLight.position, 'z').min(-50).max(50).step(0.001);
-    dynamicL.add(dynamicLight, 'intensity').min(0).max(60).step(0.001);
+    const dynamicL = gui.addFolder("Dynamic_Light");
+    dynamicL.add(dynamicLight.position, "x").min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight.position, "y").min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight.position, "z").min(-50).max(50).step(0.001);
+    dynamicL.add(dynamicLight, "intensity").min(0).max(60).step(0.001);
 
-    let dynamicLightColor = { color: 0x00ff00 }
-    dynamicL.addColor(dynamicLightColor, 'color').onChange(function() {
-        dynamicLight.color.set(dynamicLightColor.color)
-    })
+    let dynamicLightColor = { color: 0x00ff00 };
+    dynamicL.addColor(dynamicLightColor, "color").onChange(function () {
+        dynamicLight.color.set(dynamicLightColor.color);
+    });
 
     const pointlightHelperThree = new THREE.PointLightHelper(dynamicLight, 1);
     scene.add(pointlightHelperThree);
-
 }
 
-function setShadowProperties () {
+function setShadowProperties() {
     light.shadow.mapSize.width = 512; //default
-    light.shadow.mapSize.height = 512 //default
+    light.shadow.mapSize.height = 512; //default
     light.shadow.camera.near = 0.5; //default
     light.shadow.camera.far = 500; //default
 }
 
 function createFloor() {
-    let position = { x: 0, y: -46, z: -18.413};
+    let position = { x: 0, y: -46, z: -18.413 };
     let scale = { x: 458.03, y: 1.4, z: 338.92 };
 
-    var floorTextureFile = '/textures/ground.jpg';
-    var textureFloor = textureLoader.load(floorTextureFile, map => {
+    var floorTextureFile = "/textures/ground.jpg";
+    var textureFloor = textureLoader.load(floorTextureFile, (map) => {
         map.wrapS = THREE.RepeatWrapping;
         map.wrapT = THREE.RepeatWrapping;
         map.anisotropy = 4;
@@ -261,40 +307,57 @@ function createFloor() {
         floorMat.needsUpdate = true;
     });
 
-    let Plane = new THREE.Mesh(new THREE.BoxBufferGeometry(),
+    let Plane = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(),
         new THREE.MeshPhongMaterial({
-            map: textureLoader.load(floorTextureFile, () => {
-                return textureFloor;
-            }, undefined, (err) => {
-                console.log("An error occured");
-                return null;
-            }),
+            map: textureLoader.load(
+                floorTextureFile,
+                () => {
+                    return textureFloor;
+                },
+                undefined,
+                (err) => {
+                    console.log("An error occured");
+                    return null;
+                }
+            ),
             roughness: 1,
             metalness: 0.2,
             shininess: 0.3,
             bumpScale: 0.0005
-        }));
+        })
+    );
     Plane.position.set(position.x, position.y, position.z);
     Plane.scale.set(scale.x, scale.y, scale.z);
-    const FloorPosition = gui.addFolder('Floor-Position');
-    FloorPosition.add(Plane.position, 'x').min(-350).max(550).step(0.001);
-    FloorPosition.add(Plane.position, 'y').min(-350).max(550).step(0.001);
-    FloorPosition.add(Plane.position, 'z').min(-350).max(550).step(0.001);
-    const FloorScaling = gui.addFolder('Floor-Scaling');
-    FloorScaling.add(Plane.scale, 'x').min(-350).max(550).step(0.001);
-    FloorScaling.add(Plane.scale, 'y').min(-350).max(550).step(0.001);
-    FloorScaling.add(Plane.scale, 'z').min(-350).max(550).step(0.001);
+    const FloorPosition = gui.addFolder("Floor-Position");
+    FloorPosition.add(Plane.position, "x").min(-350).max(550).step(0.001);
+    FloorPosition.add(Plane.position, "y").min(-350).max(550).step(0.001);
+    FloorPosition.add(Plane.position, "z").min(-350).max(550).step(0.001);
+    const FloorScaling = gui.addFolder("Floor-Scaling");
+    FloorScaling.add(Plane.scale, "x").min(-350).max(550).step(0.001);
+    FloorScaling.add(Plane.scale, "y").min(-350).max(550).step(0.001);
+    FloorScaling.add(Plane.scale, "z").min(-350).max(550).step(0.001);
     Plane.castShadow = true;
     Plane.receiveShadow = true;
     Plane.userData.ground = true;
     Plane.userData.name = "Ground";
     scene.add(Plane);
-
 }
 
 // Blueprint for Cylinder Objects to be placed in the scene
 class Cylinder_Prop {
-    constructor(tempObject, textureFile, reflectivity, transmission, shininess, roughness, metalness, x, y, z) {
+    constructor(
+        tempObject,
+        textureFile,
+        reflectivity,
+        transmission,
+        shininess,
+        roughness,
+        metalness,
+        x,
+        y,
+        z
+    ) {
         this.tempObject = tempObject;
         this.textureFile = textureFile;
         this.reflectivity = reflectivity;
@@ -307,7 +370,7 @@ class Cylinder_Prop {
         this.z = z;
 
         this.objectDefinition = (name) => {
-            const texture = textureLoader.load(this.textureFile, map => {
+            const texture = textureLoader.load(this.textureFile, (map) => {
                 map.wrapS = THREE.RepeatWrapping;
                 map.wrapT = THREE.RepeatWrapping;
                 map.anisotropy = 4;
@@ -316,75 +379,88 @@ class Cylinder_Prop {
                 cubeMat.map = map;
                 cubeMat.needsUpdate = true;
             });
-            this.tempObject =  new THREE.Mesh( 
-                new THREE.CylinderGeometry(4,4,6.5,4,8),
+            this.tempObject = new THREE.Mesh(
+                new THREE.CylinderGeometry(4, 4, 6.5, 4, 8),
                 new THREE.MeshPhongMaterial({
-                    map: textureLoader.load(this.textureFile, () => {
-                        return texture;
-                    }, undefined, (err) => {
-                        console.log("An error occured");
-                        return null;
-                    }),
+                    map: textureLoader.load(
+                        this.textureFile,
+                        () => {
+                            return texture;
+                        },
+                        undefined,
+                        (err) => {
+                            console.log("An error occured");
+                            return null;
+                        }
+                    ),
                     reflectivity: this.reflectivity,
                     transmission: this.transmission,
                     specular: 0x222222,
                     shininess: this.shininess,
                     // shading: THREE.FlatShading,
-                    roughness: this.roughness, 
+                    roughness: this.roughness,
                     metalness: this.metalness
                 })
             );
             this.tempObject.receiveShadow = true;
             this.tempObject.castShadow = true;
-        }
+        };
 
         this.getMesh = () => {
             return this.tempObject;
-        }
+        };
 
         this.addObjextToScene = (position) => {
-            this.tempObject.rotation.y = Math.PI/position;
+            this.tempObject.rotation.y = Math.PI / position;
             this.tempObject.castShadow = true;
             this.tempObject.receiveShadow = false;
             this.tempObject.position.set(this.x, this.y, this.z);
             scene.add(this.tempObject);
-        }
+        };
 
         this.update = (scaleFactor) => {
-            this.tempObject.scale.set(scaleFactor,scaleFactor,scaleFactor);
+            this.tempObject.scale.set(scaleFactor, scaleFactor, scaleFactor);
             this.tempObject.rotation.y += 0.01;
-        }
+        };
     }
 }
 
 // ========================== Handling Event Listners =================================
 
-window.addEventListener('resize', onWindowResize, false);
+window.addEventListener("resize", onWindowResize, false);
 
-startButton.addEventListener('click', () => {
-    controls.lock();
-}, false)
+startButton.addEventListener(
+    "click",
+    () => {
+        controls.lock();
+    },
+    false
+);
 
-document.addEventListener('keydown', event => {
-    let moveDistance = 35 * clock.getDelta();
-    switch(event.code) {
-        case 'KeyW':
-            controls.moveForward(moveDistance);
-            break;
-        case 'KeyA':
-            controls.moveRight(-moveDistance);
-            break;
-        case 'KeyS':
-            controls.moveForward(-moveDistance);
-            break;
-        case 'KeyD':
-            controls.moveRight(moveDistance);
-            break;
-    }
-}, false);
+document.addEventListener(
+    "keydown",
+    (event) => {
+        let moveDistance = 35 * clock.getDelta();
+        switch (event.code) {
+            case "KeyW":
+                controls.moveForward(moveDistance);
+                break;
+            case "KeyA":
+                controls.moveRight(-moveDistance);
+                break;
+            case "KeyS":
+                controls.moveForward(-moveDistance);
+                break;
+            case "KeyD":
+                controls.moveRight(moveDistance);
+                break;
+        }
+    },
+    false
+);
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
@@ -424,11 +500,11 @@ function updateForFrame() {
  */
 function installPointerLockControls () {
     controls = new PointerLockControls(camera, canvas);
-    controls.addEventListener('lock', () => {
-        menuPanel.style.display = 'none';
+    controls.addEventListener("lock", () => {
+        menuPanel.style.display = "none";
     });
-    controls.addEventListener('unlock', () => {
-        menuPanel.style.display = 'block'
+    controls.addEventListener("unlock", () => {
+        menuPanel.style.display = "block";
     });
 }
 
@@ -441,10 +517,10 @@ function doFrame() {
     updateForFrame();
     render();
     requestAnimationFrame(doFrame);
-    
+
     stats.end();
     stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-    document.body.appendChild(stats.dom) // Show FPS counter on canvas
+    document.body.appendChild(stats.dom); // Show FPS counter on canvas
 }
 
 /*----------------------------- INITIALIZATION ----------------------------------------
@@ -458,15 +534,15 @@ function doFrame() {
 function init() {
     try {
         canvas = document.getElementById("glcanvas");
-        renderer = new THREE.WebGLRenderer({ // Initialize renderer
+        renderer = new THREE.WebGLRenderer({
+            // Initialize renderer
             canvas: canvas,
             antialias: true,
             alpha: false
         });
-    }
-    catch (e) {
-        document.getElementById("message").innerHTML="<b>Sorry, an error occurred:<br>" +
-                e + "</b>";
+    } catch (e) {
+        document.getElementById("message").innerHTML =
+            "<b>Sorry, an error occurred:<br>" + e + "</b>";
         return;
     }
     canvas.width = window.innerWidth;
