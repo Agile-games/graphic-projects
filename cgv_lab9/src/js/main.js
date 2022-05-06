@@ -1,13 +1,29 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as dat from 'dat.gui';
 import Stats from 'stats.js';
+import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
+import { DragControls } from 'three/examples/jsm/controls/DragControls';
+// import * as THREEx from 'threex';
 
+const menuPanel = document.getElementById('menuPanel');
+const startButton = document.getElementById('startButton');
+ 
 // Debug
 const gui = new dat.GUI();
 
 // For Monitoring Perfomance
 const stats = new Stats();
+
+// for smooth animation
+var clock = new THREE.Clock();
+
+// Initialize Keyboard state
+// var keyboard = new THREEx.keyboardState();
+
+// first person viewing
+var firstpersonCameraControl;
+var altFirstPersonCameraControl;
 
 var canvas, renderer, scene, camera, textureLoader; // Standard three.js requirements.
 var light;  // A light shining from the direction of the camera; moves with the camera.
@@ -18,13 +34,14 @@ var controls;  // An OrbitControls object that is used to implement
 
 var cubeMat, floorMat;
 
-var animating = false;  // Set to true when an animation is in progress.
 var frameNumber = 0;  // Frame number is advanced by 1 for each frame while animating.
 
 var tempObject;  // A temporary animated object.  DELETE IT.
 
+const objects = []; // Keep track of objects in scene
+var dragObjects;
+
 var objectOne, objectTwo, objectThree, objectFour; // Objects in scene
-let rayCaster, clickMouse, moveMouse, draggable; // Requirements for dragging around objects
 
 /**
  *  The render function draws the scene.
@@ -43,6 +60,8 @@ function createWorld() {
     // ------------------- Make a camera with viewpoint light ----------------------
 
     setCameraProperties(); // set camera and light properties and add to scene
+    firstpersonCameraControl = new FirstPersonControls(camera, canvas);
+    altFirstPersonCameraControl = new PointerLockControls(camera, canvas);
 
     // ----------------- Set up shadow properties for the light ---------------------
     
@@ -59,13 +78,13 @@ function createWorld() {
     //------------------- Create the scene's visible objects ----------------------
 
     // Add ground
-    createFloor();
     floorMat = new THREE.MeshStandardMaterial({
         roughness: 0.8,
         color: 0xffffff,
         metalness: 0.2,
         bumpScale: 0.0005
     });
+    createFloor();
 
     cubeMat = new THREE.MeshStandardMaterial({
         roughness: 0.7,
@@ -74,20 +93,13 @@ function createWorld() {
         metalness: 0.2
     });
 
-    /*
-        Initialize raycaster and every helper variable 
-    */
-    rayCaster = new THREE.Raycaster();
-    clickMouse = new THREE.Vector2();
-    moveMouse = new THREE.Vector2();
-    draggable: THREE.Object3D;
-
     // First Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
     objectOne = new Cylinder_Prop(undefined, '/textures/tarmac2.jpg', 8, 10, 2, -8, 4, 0);
     objectOne.objectDefinition("tarmacObj"); // texture is initially undefined
     objectOne.addObjextToScene(12); // pass in the initial rotation value -> Math.PI/{value}
+    objects.push(objectOne.getMesh());
 
     // Second Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
@@ -95,6 +107,7 @@ function createWorld() {
     objectTwo = new Cylinder_Prop(undefined, '/textures/Leather.webp', 5, 20, 2, 8, 4, 0);
     objectTwo.objectDefinition("blackLeatherObj"); // texture is initially undefined
     objectTwo.addObjextToScene(6); // pass in the initial rotation value -> Math.PI/{value}
+    objects.push(objectTwo.getMesh());
 
     // Third Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
@@ -102,6 +115,7 @@ function createWorld() {
     objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 36, 2, 30, -8, -4, 0);
     objectThree.objectDefinition("blackMatObj"); // texture is initially undefined
     objectThree.addObjextToScene(1); // pass in the initial rotation value -> Math.PI/{value}
+    objects.push(objectThree.getMesh());
 
     // Fourth Object
     // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
@@ -109,17 +123,26 @@ function createWorld() {
     objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 25, 0, 8, -4, 0);
     objectFour.objectDefinition("pineWoodObj"); // texture is initially undefined
     objectFour.addObjextToScene(3); // pass in the initial rotation value -> Math.PI/{value}
+    objects.push(objectFour.getMesh());
+
+    dragObjects = new DragControls(objects, camera, canvas);
+
+    dragObjects.addEventListener('dragstart', event => {
+        event.object.material.opacity = 0.5;
+    });
+    
+    dragObjects.addEventListener('dragend', event => {
+        event.object.material.opacity = 1;
+    });
+
     doFrame();
 } // end function createWorld()
 
 function setRendererProperties () {
     renderer.setClearColor("black"); // Background color of scene.
     renderer.physicallyCorrectLights = true;
-    // renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.shadowMap.enabled = true;
-    // renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.shadowMap.type = THREE.PCFShadowMap;
-    // renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(canvas.width, canvas.height);
     document.body.appendChild(renderer.domElement);
     scene = new THREE.Scene();
@@ -143,10 +166,9 @@ function setCameraProperties () {
 }
 
 function addingMoreLights () {
-    // scene-Global Lighting (Ambient Light that illuminates the scene from above)
+    // scene-Global Lighting (Ambient Light that illuminates the scene from the bird's eye view)
     const ambientLight = new THREE.AmbientLight(0xffffff, 3.5)
     ambientLight.position.set(0, 33, 0);
-    ambientLight.castShadow = true;
     const globalLight = gui.addFolder('Global-Light');
     globalLight.add(ambientLight, 'intensity').min(0).max(5).step(0.001);
     scene.add(ambientLight);
@@ -159,7 +181,7 @@ function addingMoreLights () {
     redLight.add(Alight.position, 'x').min(-50).max(50).step(0.001);
     redLight.add(Alight.position, 'y').min(-50).max(50).step(0.001);
     redLight.add(Alight.position, 'z').min(-50).max(50).step(0.001);
-    redLight.add(Alight, 'intensity').min(0).max(15).step(0.001);
+    redLight.add(Alight, 'intensity').min(0).max(60).step(0.001);
     var pointlightHelperOne = new THREE.PointLightHelper(Alight, 1);
     scene.add(Alight);
     scene.add(pointlightHelperOne);
@@ -173,7 +195,7 @@ function addingMoreLights () {
     blueLight.add(AlightTwo.position, 'x').min(-50).max(50).step(0.001);
     blueLight.add(AlightTwo.position, 'y').min(-50).max(50).step(0.001);
     blueLight.add(AlightTwo.position, 'z').min(-50).max(50).step(0.001);
-    blueLight.add(AlightTwo, 'intensity').min(0).max(15).step(0.001);
+    blueLight.add(AlightTwo, 'intensity').min(0).max(60).step(0.001);
     var pointlightHelperTwo = new THREE.PointLightHelper(AlightTwo, 1);
     scene.add(AlightTwo);
     scene.add(pointlightHelperTwo);
@@ -187,7 +209,7 @@ function addingMoreLights () {
     dynamicL.add(dynamicLight.position, 'x').min(-50).max(50).step(0.001);
     dynamicL.add(dynamicLight.position, 'y').min(-50).max(50).step(0.001);
     dynamicL.add(dynamicLight.position, 'z').min(-50).max(50).step(0.001);
-    dynamicL.add(dynamicLight, 'intensity').min(0).max(15).step(0.001);
+    dynamicL.add(dynamicLight, 'intensity').min(0).max(60).step(0.001);
 
     let dynamicLightColor = { color: 0x00ff00 }
     dynamicL.addColor(dynamicLightColor, 'color').onChange(function() {
@@ -274,7 +296,7 @@ class Cylinder_Prop {
                 cubeMat.map = map;
                 cubeMat.needsUpdate = true;
             });
-            tempObject =  new THREE.Mesh( 
+            this.tempObject =  new THREE.Mesh( 
                 new THREE.CylinderGeometry(4,4,6.5,4,8),
                 new THREE.MeshPhongMaterial({
                     map: textureLoader.load(this.textureFile, () => {
@@ -290,85 +312,54 @@ class Cylinder_Prop {
                     metalness: this.metalness
                 })
             );
-            tempObject.userData.draggable = true;
-            tempObject.userData.name = name;
-            tempObject.receiveShadow = true;
-            tempObject.castShadow = true;
+            this.tempObject.receiveShadow = true;
+            this.tempObject.castShadow = true;
+        }
+
+        this.getMesh = () => {
+            return this.tempObject;
         }
 
         this.addObjextToScene = (position) => {
-            tempObject.rotation.y = Math.PI/position;
-            tempObject.castShadow = true;
-            tempObject.receiveShadow = false;
-            tempObject.position.set(this.x, this.y, this.z);
-            scene.add(tempObject);
+            this.tempObject.rotation.y = Math.PI/position;
+            this.tempObject.castShadow = true;
+            this.tempObject.receiveShadow = false;
+            this.tempObject.position.set(this.x, this.y, this.z);
+            scene.add(this.tempObject);
         }
 
         this.update = (scaleFactor) => {
-            tempObject.scale.set(scaleFactor,scaleFactor,scaleFactor);
-            tempObject.rotation.y += 0.01;
+            this.tempObject.scale.set(scaleFactor,scaleFactor,scaleFactor);
+            this.tempObject.rotation.y += 0.01;
         }
     }
-}
-
-function keyCameraTranslate () {
-    document.addEventListener('keypress', function(e) {
-        if (e.key === 'w') {
-            camera.position.z -= 1.5; 
-        } else if (e.key === 'a') {
-            camera.position.x -= 1.5;
-        } else if (e.key === 'd') {
-            camera.position.x += 1.5;
-        } else if (e.key === 's') { 
-            camera.position.z += 1.5;
-        }
-    }, false)
 }
 
 // ========================== Handling Event Listners =================================
 
 window.addEventListener('resize', onWindowResize, false);
-window.addEventListener('click', event => {
 
-    if (draggable) {
-        console.log(`dropping draggable ${draggable.userData.name}`);
-        draggable = null;
-        return;
+startButton.addEventListener('click', () => {
+    controls.lock();
+}, false)
+
+document.addEventListener('keydown', event => {
+    let moveDistance = 35 * clock.getDelta();
+    switch(event.code) {
+        case 'KeyW':
+            controls.moveForward(moveDistance);
+            break;
+        case 'KeyA':
+            controls.moveRight(-moveDistance);
+            break;
+        case 'KeyS':
+            controls.moveForward(-moveDistance);
+            break;
+        case 'KeyD':
+            controls.moveRight(moveDistance);
+            break;
     }
-
-    clickMouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    clickMouse.y = ( event.clientY / window.innerHeight ) * 2 - 1;
-
-    rayCaster.setFromCamera( clickMouse, camera );
-    const foundObject = rayCaster.intersectObjects( scene.children );
-    if (foundObject.length > 0 && foundObject[0].object.userData.draggable) {
-        draggable = foundObject[0].object;
-        console.log(`found draggable ${draggable.userData.name}`);
-    }
-});
-
-window.addEventListener('mousemove', event => {
-    moveMouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    moveMouse.y = ( event.clientY / window.innerHeight ) * 2 - 1;
-});
-
-function dragObject() {
-    if (draggable != null) {
-        rayCaster.setFromCamera(moveMouse, camera);
-        const foundObject = rayCaster.intersectObjects(scene.children);
-        if (foundObject.length > 0) {
-            for (let i of foundObject) {
-                if (!i.object.userData.ground) {
-                    continue
-                }
-                // draggable.position = {x: i.point.x, y: i.point.y, z: i.point.z};
-                draggable.position.x = i.point.x;
-                draggable.position.y = i.point.y;
-                draggable.position.z = i.point.z;
-            }
-        }
-    }
-}
+}, false);
 
 function onWindowResize() {
     camera.aspect = window.innerWidth/window.innerHeight;
@@ -388,74 +379,43 @@ function updateForFrame() {
     if (loopFrame > 120) {
         loopFrame = 240 - loopFrame;
     }
-    // var scaleFactor = 0.9 + loopFrame/1220;
+
+    // let moveDistance = clock.getDelta();
+
+    // var scaleFactor = 1 + loopFrame/120;
     // dragObject();
     var scaleFactor = 1;
-    camera.lookAt(scene.position);
+    // camera.lookAt(scene.position);
     objectOne.update(scaleFactor);
     objectTwo.update(scaleFactor);
     objectThree.update(scaleFactor);
     objectFour.update(scaleFactor);
-    
+    // firstpersonCameraControl.update(moveDistance);
+    // altFirstPersonCameraControl.update(moveDistance);
 }
-
 
 /* ---------------------------- MOUSE AND ANIMATION SUPPORT ------------------
 
 /**
- *  This page uses THREE.OrbitControls to let the user use the mouse to rotate
- *  the view.  OrbitControls are designed to be used during an animation, where
+ *  This page uses THREE.FirstPersonControls or THREE.PointerLockControls to let the user use the mouse to rotate
+ *  the view.  FirstPersonControls and PointerLockControls are designed to be used during an animation, where
  *  the rotation is updated as part of preparing for the next frame.  The scene
  *  is not automatically updated just because the user drags the mouse.  To get
  *  the rotatio one touch.
  */
-function installOrbitControls() {
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.noPan = true; 
-    controls.noZoom = true;
-    controls.staticMoving = false;
-    function move() {
-        controls.update();
-        // if (! animating) {
-            render();
-        // }
-    }
-    function down() {
-        document.addEventListener("mousemove", move, false);
-    }
-    function up() {
-        document.removeEventListener("mousemove", move, false);
-    }
-    function touch(event) {
-        if (event.touches.length == 1) {
-            move();
-        }
-    }
-    canvas.addEventListener("mousedown", down, false);
-    canvas.addEventListener("mouseUP", up, false);
-    canvas.addEventListener("touchmove", touch, false);
+function installFirstPersonControls () {
+    firstpersonCameraControl.lookSpeed = 0.09;
+    firstpersonCameraControl.movementSpeed = 75;
 }
 
 function installPointerLockControls () {
-    const controls = new PointerLockControls( camera, document.body );
-
-    // add event listener to show/hide a UI (e.g. the game's menu)
-
-    controls.addEventListener('change', function() {
-
-    }, false);
-
-    controls.addEventListener( 'lock', function () {
-
-        menu.style.display = 'none';
-
-    } );
-
-    controls.addEventListener( 'unlock', function () {
-
-        menu.style.display = 'block';
-
-    } );
+    controls = new PointerLockControls(camera, canvas);
+    controls.addEventListener('lock', () => {
+        menuPanel.style.display = 'none';
+    });
+    controls.addEventListener('unlock', () => {
+        menuPanel.style.display = 'block'
+    });
 }
 
 /*  Drives the animation, called by system through requestAnimationFrame() */
@@ -500,6 +460,7 @@ function init() {
     createWorld();
     // installOrbitControls();
     installPointerLockControls();
+    installFirstPersonControls();
     render();
 }
 init();
