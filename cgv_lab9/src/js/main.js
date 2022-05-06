@@ -4,6 +4,9 @@ import Stats from 'stats.js';
 import { FirstPersonControls } from 'three/examples/jsm/controls/FirstPersonControls';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls';
 import { DragControls } from 'three/examples/jsm/controls/DragControls';
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 // import * as THREEx from 'threex';
 
 const menuPanel = document.getElementById('menuPanel');
@@ -24,6 +27,9 @@ var clock = new THREE.Clock();
 // first person viewing
 var firstpersonCameraControl;
 var altFirstPersonCameraControl;
+
+// Initialize Postprocessing variables
+var bokehPass, renderPass, composer;
 
 var canvas, renderer, scene, camera, textureLoader; // Standard three.js requirements.
 var light;  // A light shining from the direction of the camera; moves with the camera.
@@ -94,33 +100,33 @@ function createWorld() {
     });
 
     // First Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectOne = new Cylinder_Prop(undefined, '/textures/tarmac2.jpg', 8, 10, 2, -8, 4, 0);
+    objectOne = new Cylinder_Prop(undefined, '/textures/tarmac2.jpg', 0, 0, 8, 10, 2, -8, 4, 0);
     objectOne.objectDefinition("tarmacObj"); // texture is initially undefined
     objectOne.addObjextToScene(12); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectOne.getMesh());
 
     // Second Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectTwo = new Cylinder_Prop(undefined, '/textures/Leather.webp', 5, 20, 2, 8, 4, 0);
+    objectTwo = new Cylinder_Prop(undefined, '/textures/Leather.webp', 0, 0, 5, 20, 2, 8, 4, 0);
     objectTwo.objectDefinition("blackLeatherObj"); // texture is initially undefined
     objectTwo.addObjextToScene(6); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectTwo.getMesh());
 
     // Third Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 36, 2, 30, -8, -4, 0);
+    objectThree = new Cylinder_Prop(undefined, '/textures/blackMat.jpg', 1, 1, 36, 2, 30, -8, -4, 0);
     objectThree.objectDefinition("blackMatObj"); // texture is initially undefined
     objectThree.addObjextToScene(1); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectThree.getMesh());
 
     // Fourth Object
-    // Prop-Parameters(tempObject, textureFile, shininess-value, roughness, metalness, x, y, z)
+    // Prop-Parameters(tempObject, textureFile, reflectivity, transmission, shininess-value, roughness, metalness, x, y, z)
     // tempObject so that we can create a mesh blueprint
-    objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 25, 0, 8, -4, 0);
+    objectFour = new Cylinder_Prop(undefined, '/textures/pineWood.jpg', 0, 0, 0, 25, 0, 8, -4, 0);
     objectFour.objectDefinition("pineWoodObj"); // texture is initially undefined
     objectFour.addObjextToScene(3); // pass in the initial rotation value -> Math.PI/{value}
     objects.push(objectFour.getMesh());
@@ -139,18 +145,38 @@ function createWorld() {
 } // end function createWorld()
 
 function setRendererProperties () {
-    renderer.setClearColor("black"); // Background color of scene.
+    camera = new THREE.PerspectiveCamera(65, canvas.width/canvas.height, 0.1, 1000);
+    camera.position.set(0, 0, 22);
+    // renderer.setClearColor("black"); // Background color of scene.
     renderer.physicallyCorrectLights = true;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.setSize(canvas.width, canvas.height);
     document.body.appendChild(renderer.domElement);
     scene = new THREE.Scene();
+    const imgFile = '/textures/Planet.jpg';
+    var imgfiles = [];
+    for (let i = 0; i < 6; i++) {
+        imgfiles.push(imgFile);
+    }
+    const galaxyB = new THREE.CubeTextureLoader().load(imgfiles);
+    scene.background = galaxyB;
+
+    // Postprocessing elements
+    renderPass = new RenderPass(scene, camera);
+    bokehPass = new BokehPass(scene, camera, {
+        focus: 1.0,
+        aperture: 0.0001,
+        maxblur: 1.0,
+        width: window.innderWith,
+        height: window.innerHeight
+    });
+    composer = new EffectComposer(renderer);
+    composer.addPass(renderPass);
+    composer.addPass(bokehPass);
 }
 
 function setCameraProperties () {
-    camera = new THREE.PerspectiveCamera(65, canvas.width/canvas.height, 0.1, 1000);
-    camera.position.set(0, 0, 22);
     const cameraPos = gui.addFolder('Camera-Position');
     cameraPos.add(camera.position, 'x').min(-250).max(250).step(0.001);
     cameraPos.add(camera.position, 'y').min(-250).max(250).step(0.001);
@@ -167,10 +193,10 @@ function setCameraProperties () {
 
 function addingMoreLights () {
     // scene-Global Lighting (Ambient Light that illuminates the scene from the bird's eye view)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 3.5)
+    const ambientLight = new THREE.AmbientLight(0x444444, 12.5)
     ambientLight.position.set(0, 33, 0);
     const globalLight = gui.addFolder('Global-Light');
-    globalLight.add(ambientLight, 'intensity').min(0).max(5).step(0.001);
+    globalLight.add(ambientLight, 'intensity').min(0).max(20).step(0.001);
     scene.add(ambientLight);
 
     // Add a red light
@@ -276,9 +302,11 @@ function createFloor() {
 
 // Blueprint for Cylinder Objects to be placed in the scene
 class Cylinder_Prop {
-    constructor(tempObject, textureFile, shininess, roughness, metalness, x, y, z) {
+    constructor(tempObject, textureFile, reflectivity, transmission, shininess, roughness, metalness, x, y, z) {
         this.tempObject = tempObject;
         this.textureFile = textureFile;
+        this.reflectivity = reflectivity;
+        this.transmission = transmission;
         this.shininess = shininess;
         this.roughness = roughness;
         this.metalness = metalness;
@@ -305,6 +333,8 @@ class Cylinder_Prop {
                         console.log("An error occured");
                         return null;
                     }),
+                    reflectivity: this.reflectivity,
+                    transmission: this.transmission,
                     specular: 0x222222,
                     shininess: this.shininess,
                     // shading: THREE.FlatShading,
